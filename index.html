@@ -1,0 +1,1236 @@
+<!DOCTYPE html>
+<html lang="en" class="dark h-full bg-slate-950 text-slate-100">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AudioCompress Pro - 100% Client-Side Audio Utilities Suite</title>
+  <meta name="description" content="Browser-based client-side audio compressor, mono downmixer, metadata editor, format converter, and normalization suite. Zero uploads, 100% privacy.">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Plus Jakarta Sans', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              400: '#818cf8',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+              900: '#312e81',
+            },
+            accent: {
+              cyan: '#06b6d4',
+              emerald: '#10b981',
+              amber: '#f59e0b',
+              rose: '#f43f5e',
+            }
+          },
+          boxShadow: {
+            'glow-indigo': '0 0 25px -5px rgba(99, 102, 241, 0.4)',
+            'glow-cyan': '0 0 25px -5px rgba(6, 182, 212, 0.4)',
+            'glow-emerald': '0 0 25px -5px rgba(16, 185, 129, 0.4)',
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- External Client-Side Libraries -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lamejs@1.2.1/lame.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js"></script>
+
+  <style>
+    /* Custom CSS Glassmorphism & Animations */
+    .glass-card {
+      background: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .glass-input {
+      background: rgba(30, 41, 59, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      transition: all 0.2s ease-in-out;
+    }
+    .glass-input:focus {
+      border-color: #6366f1;
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+      outline: none;
+    }
+    .gradient-text {
+      background: linear-gradient(135deg, #818cf8 0%, #06b6d4 50%, #10b981 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.5);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(99, 102, 241, 0.3);
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(99, 102, 241, 0.6);
+    }
+    /* Dropzone animation */
+    .dropzone-active {
+      border-color: #06b6d4 !important;
+      background: rgba(6, 182, 212, 0.08) !important;
+      transform: scale(1.005);
+    }
+  </style>
+</head>
+<body class="h-full font-sans antialiased text-slate-200 bg-slate-950 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(120,119,198,0.15),rgba(255,255,255,0))]">
+
+  <div class="min-h-full flex flex-col max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+    <!-- Top Header & Privacy Badge -->
+    <header class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-800 pb-5">
+      <div class="flex items-center space-x-3">
+        <div class="h-11 w-11 rounded-xl bg-gradient-to-tr from-brand-600 to-accent-cyan flex items-center justify-center shadow-glow-indigo">
+          <i class="fa-solid fa-compact-disc text-white text-xl animate-spin-slow"></i>
+        </div>
+        <div>
+          <h1 class="text-2xl font-extrabold tracking-tight gradient-text">AudioCompress Pro</h1>
+          <p class="text-xs text-slate-400 font-medium">100% Client-Side Audio Suite & Batch Compression Engine</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold">
+          <i class="fa-solid fa-shield-halved"></i>
+          <span>100% Offline / Privacy Default</span>
+        </div>
+        <button id="btn-reset-all" class="px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 border border-slate-800 hover:border-rose-500/30 transition">
+          <i class="fa-solid fa-trash-can mr-1.5"></i> Clear All
+        </button>
+      </div>
+    </header>
+
+    <!-- MAIN DROPZONE -->
+    <section>
+      <div id="dropzone" class="glass-card rounded-2xl border-2 border-dashed border-slate-700 p-8 text-center cursor-pointer hover:border-brand-500 transition-all duration-300 group">
+        <input type="file" id="file-input" multiple accept="audio/*,.mp3,.wav,.ogg,.m4a,.aac,.flac" class="hidden">
+        <div class="flex flex-col items-center justify-center space-y-3">
+          <div class="w-16 h-16 rounded-full bg-brand-500/10 border border-brand-500/20 flex items-center justify-center text-brand-400 group-hover:scale-110 group-hover:bg-brand-500/20 transition-all shadow-glow-indigo">
+            <i class="fa-solid fa-cloud-arrow-up text-2xl"></i>
+          </div>
+          <div>
+            <p class="text-base font-semibold text-slate-200">
+              Drag & Drop single or multiple audio files / folders here
+            </p>
+            <p class="text-xs text-slate-400 mt-1">
+              Supports <span class="text-slate-300 font-medium">MP3, WAV, AAC, M4A, OGG, FLAC</span> • Fast multithreaded processing
+            </p>
+          </div>
+          <button type="button" class="mt-2 px-5 py-2 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-medium text-xs shadow-lg shadow-brand-600/30 transition">
+            <i class="fa-solid fa-folder-open mr-2"></i> Browse Files / Folder
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- SETTINGS PANEL & CONTROLS -->
+    <section class="glass-card rounded-2xl p-6 space-y-6">
+      <div class="flex flex-col md:flex-row md:items-center justify-between border-b border-slate-800 pb-4 gap-4">
+        <div>
+          <h2 class="text-lg font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-sliders text-brand-400"></i> Optimization & Preset Settings
+          </h2>
+          <p class="text-xs text-slate-400">Choose a compression level target or configure custom parameters below.</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <label for="preset-selector" class="text-xs text-slate-400 font-medium">Saved Presets:</label>
+          <select id="preset-selector" class="glass-input text-xs rounded-lg px-3 py-1.5 text-slate-200">
+            <option value="default">Default Config</option>
+            <option value="voice_podcast">Voice / Podcast Optimal</option>
+            <option value="music_balanced">Music Balanced</option>
+            <option value="max_saver">Maximum Storage Saver</option>
+          </select>
+          <button id="btn-save-preset" title="Save current settings to browser" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 border border-slate-700 transition">
+            <i class="fa-solid fa-bookmark"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- PRESET TARGET CARDS (Front and Center) -->
+      <div>
+        <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">
+          1. Compression Level Target (Output Size vs Audio Quality Trade-off)
+        </label>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <!-- Preset: Small Reduction (High Quality) -->
+          <div id="card-preset-small" class="preset-card glass-card rounded-xl p-4 border-2 border-brand-500/80 bg-brand-900/20 cursor-pointer transition hover:border-brand-400">
+            <div class="flex items-center justify-between mb-2">
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-brand-500/20 text-brand-300 border border-brand-500/40">Small Size Reduction</span>
+              <span class="text-xs font-mono text-emerald-400 font-semibold">~20–35% Smaller</span>
+            </div>
+            <h3 class="text-sm font-bold text-white">Highest Quality Preserved</h3>
+            <p class="text-xs text-slate-400 mt-1">Target ~192–256 kbps. Ideal for music archiving where full fidelity is critical.</p>
+          </div>
+
+          <!-- Preset: Medium Reduction (Balanced) -->
+          <div id="card-preset-medium" class="preset-card glass-card rounded-xl p-4 border border-slate-800 cursor-pointer transition hover:border-brand-500">
+            <div class="flex items-center justify-between mb-2">
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-accent-cyan/20 text-accent-cyan border border-accent-cyan/30">Medium Size Reduction</span>
+              <span class="text-xs font-mono text-emerald-400 font-semibold">~40–60% Smaller</span>
+            </div>
+            <h3 class="text-sm font-bold text-white">Balanced Fidelity & Size</h3>
+            <p class="text-xs text-slate-400 mt-1">Target ~128 kbps, 44.1 kHz. Excellent for streaming, podcasts, and general listening.</p>
+          </div>
+
+          <!-- Preset: High Reduction (Maximum Savings) -->
+          <div id="card-preset-high" class="preset-card glass-card rounded-xl p-4 border border-slate-800 cursor-pointer transition hover:border-brand-500">
+            <div class="flex items-center justify-between mb-2">
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-accent-amber/20 text-accent-amber border border-accent-amber/30">High Size Reduction</span>
+              <span class="text-xs font-mono text-emerald-400 font-semibold">~65–85% Smaller</span>
+            </div>
+            <h3 class="text-sm font-bold text-white">Maximum Compression</h3>
+            <p class="text-xs text-slate-400 mt-1">Target ~64–96 kbps, 22.05–32 kHz. Perfect for voice notes, long lectures, and low bandwidth.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- COLLAPSIBLE ADVANCED SETTINGS -->
+      <details id="advanced-settings-details" class="group border border-slate-800 rounded-xl bg-slate-900/40 overflow-hidden">
+        <summary class="flex items-center justify-between px-5 py-3.5 cursor-pointer select-none bg-slate-900/80 hover:bg-slate-800/60 transition">
+          <div class="flex items-center gap-2 text-xs font-bold text-slate-300 uppercase tracking-wider">
+            <i class="fa-solid fa-gear text-brand-400"></i>
+            <span>2. Advanced Manual Controls (Downmix, Metadata, Normalization, Trim & Format)</span>
+          </div>
+          <span class="text-xs text-slate-400 group-open:rotate-180 transition-transform">
+            <i class="fa-solid fa-chevron-down"></i>
+          </span>
+        </summary>
+
+        <div class="p-5 grid grid-cols-1 md:grid-cols-3 gap-6 border-t border-slate-800 text-xs">
+          
+          <!-- Channel Downmixing -->
+          <div class="space-y-3">
+            <label class="font-bold text-slate-200 flex items-center gap-1.5">
+              <i class="fa-solid fa-sliders text-accent-cyan"></i> Channel Configuration
+            </label>
+            <div>
+              <select id="cfg-downmix" class="glass-input w-full rounded-lg px-3 py-2 text-slate-200">
+                <option value="auto">Keep Original Channels</option>
+                <option value="average">Downmix to Mono (Average L+R)</option>
+                <option value="left">Downmix to Mono (Left Only)</option>
+                <option value="right">Downmix to Mono (Right Only)</option>
+              </select>
+              <p class="text-[11px] text-emerald-400 mt-1 font-medium">
+                <i class="fa-solid fa-circle-info"></i> Mono downmixing cuts bitrate/file size ~50% further.
+              </p>
+            </div>
+            
+            <div class="pt-2 border-t border-slate-800">
+              <label class="font-bold text-slate-200 block mb-1">Target Format</label>
+              <select id="cfg-format" class="glass-input w-full rounded-lg px-3 py-2 text-slate-200">
+                <option value="mp3">MP3 (Universal compatibility)</option>
+                <option value="wav">WAV (Passthrough / Lossless PCM)</option>
+                <option value="ogg">OGG / Opus (High efficiency)</option>
+                <option value="aac">AAC / M4A (MPEG-4 Audio)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Metadata & Sample Rate -->
+          <div class="space-y-3">
+            <label class="font-bold text-slate-200 flex items-center gap-1.5">
+              <i class="fa-solid fa-tags text-accent-emerald"></i> Metadata & Sampling
+            </label>
+            <div>
+              <label class="block text-slate-400 mb-1">Embedded ID3 Metadata</label>
+              <select id="cfg-metadata" class="glass-input w-full rounded-lg px-3 py-2 text-slate-200">
+                <option value="strip">Strip All (Smallest size, clean privacy)</option>
+                <option value="basic">Keep Basic Tags Only (Title, Artist, Album)</option>
+                <option value="keep">Keep All (Include original cover art)</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-slate-400 mb-1">Sample Rate</label>
+              <select id="cfg-samplerate" class="glass-input w-full rounded-lg px-3 py-2 text-slate-200">
+                <option value="auto">Keep Original Sample Rate</option>
+                <option value="44100">44.1 kHz (CD Standard)</option>
+                <option value="32000">32.0 kHz (FM Radio Quality)</option>
+                <option value="22050">22.05 kHz (Voice / Speech)</option>
+                <option value="16000">16.0 kHz (Low Bandwidth Speech)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Normalization & Trimming -->
+          <div class="space-y-3">
+            <label class="font-bold text-slate-200 flex items-center gap-1.5">
+              <i class="fa-solid fa-wand-magic-sparkles text-accent-amber"></i> Normalization & Trimming
+            </label>
+            <div>
+              <label class="block text-slate-400 mb-1">Loudness Normalization</label>
+              <select id="cfg-normalize" class="glass-input w-full rounded-lg px-3 py-2 text-slate-200">
+                <option value="none">Disabled (Keep original gain)</option>
+                <option value="lufs16">Standard Podcast (-16 LUFS Target)</option>
+                <option value="peak0">Peak Normalize (-0.5 dB Peak)</option>
+              </select>
+            </div>
+
+            <div class="flex items-center gap-3 pt-1">
+              <label class="flex items-center gap-2 text-slate-300 cursor-pointer">
+                <input type="checkbox" id="cfg-trim-silence" class="rounded bg-slate-900 border-slate-700 text-brand-600 focus:ring-brand-500">
+                <span>Trim Leading & Trailing Silence</span>
+              </label>
+            </div>
+
+            <div>
+              <label class="block text-slate-400 mb-1">Batch Export Naming Template</label>
+              <input type="text" id="cfg-filename-pattern" value="{name}_compressed.{ext}" class="glass-input w-full rounded-lg px-3 py-1.5 text-slate-200 font-mono">
+            </div>
+          </div>
+
+        </div>
+      </details>
+    </section>
+
+    <!-- WAVEFORM PREVIEW & A/B PLAYER SECTION -->
+    <section id="waveform-section" class="glass-card rounded-2xl p-5 space-y-4 hidden">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg bg-brand-500/20 text-brand-400 flex items-center justify-center">
+            <i class="fa-solid fa-chart-simple"></i>
+          </div>
+          <div>
+            <h3 id="waveform-file-title" class="text-sm font-bold text-white">Audio Waveform & Trim Editor</h3>
+            <p id="waveform-file-meta" class="text-[11px] font-mono text-slate-400">44.1 kHz • Stereo • 03:45</p>
+          </div>
+        </div>
+
+        <!-- A/B Comparison Switch -->
+        <div class="flex items-center gap-2 bg-slate-900/90 border border-slate-800 rounded-xl p-1 text-xs">
+          <button id="ab-btn-orig" class="px-3 py-1 rounded-lg bg-brand-600 text-white font-semibold shadow">Original</button>
+          <button id="ab-btn-proc" class="px-3 py-1 rounded-lg text-slate-400 hover:text-slate-200 font-semibold" disabled>Processed (A/B)</button>
+        </div>
+      </div>
+
+      <!-- Canvas Waveform Display -->
+      <div class="relative w-full h-32 bg-slate-950/80 rounded-xl border border-slate-800 overflow-hidden">
+        <canvas id="waveform-canvas" class="w-full h-full block cursor-crosshair"></canvas>
+        <div id="playhead-line" class="absolute top-0 bottom-0 w-0.5 bg-rose-500 pointer-events-none hidden" style="left: 0%;"></div>
+      </div>
+
+      <!-- Playback Controls -->
+      <div class="flex items-center justify-between text-xs pt-1">
+        <div class="flex items-center gap-3">
+          <button id="btn-play-preview" class="w-9 h-9 rounded-full bg-brand-600 hover:bg-brand-500 text-white flex items-center justify-center shadow-lg transition">
+            <i class="fa-solid fa-play"></i>
+          </button>
+          <span id="preview-timer" class="font-mono text-slate-300">00:00 / 00:00</span>
+        </div>
+
+        <div class="flex items-center gap-4 text-slate-400 font-mono text-[11px]">
+          <span>Start Trim: <input type="number" id="trim-start" step="0.1" value="0.0" class="glass-input w-16 px-1.5 py-0.5 rounded text-center text-slate-200">s</span>
+          <span>End Trim: <input type="number" id="trim-end" step="0.1" value="0.0" class="glass-input w-16 px-1.5 py-0.5 rounded text-center text-slate-200">s</span>
+          <span>Fade: <input type="number" id="trim-fade" step="0.1" value="0.5" class="glass-input w-14 px-1.5 py-0.5 rounded text-center text-slate-200">s</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- BATCH QUEUE TABLE & ACTIONS -->
+    <section class="glass-card rounded-2xl p-6 space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+        <div>
+          <h2 class="text-lg font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-list-check text-brand-400"></i> Batch Queue & Files
+            <span id="queue-badge-count" class="px-2 py-0.5 rounded-full text-xs bg-slate-800 text-slate-300 font-mono border border-slate-700">0 files</span>
+          </h2>
+          <p class="text-xs text-slate-400">Monitor status, inspect size savings, and download individually or as a ZIP package.</p>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex flex-wrap items-center gap-2">
+          <button id="btn-process-all" class="px-4 py-2 rounded-xl bg-gradient-to-r from-brand-600 to-accent-cyan hover:from-brand-500 hover:to-accent-cyan text-white text-xs font-bold shadow-glow-indigo transition disabled:opacity-50 disabled:cursor-not-allowed">
+            <i class="fa-solid fa-bolt mr-1.5"></i> Process Batch Queue
+          </button>
+          <button id="btn-download-zip" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition disabled:opacity-50 disabled:cursor-not-allowed">
+            <i class="fa-solid fa-file-zipper mr-1.5 text-accent-emerald"></i> Download ZIP
+          </button>
+          <button id="btn-export-csv" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition disabled:opacity-50 disabled:cursor-not-allowed">
+            <i class="fa-solid fa-file-csv mr-1.5 text-accent-amber"></i> Summary CSV
+          </button>
+        </div>
+      </div>
+
+      <!-- Batch Overall Progress Bar -->
+      <div id="batch-progress-container" class="hidden space-y-1">
+        <div class="flex justify-between text-xs font-mono">
+          <span id="batch-progress-text" class="text-slate-300">Processing Batch: 0/0 Completed</span>
+          <span id="batch-progress-pct" class="text-accent-cyan font-bold">0%</span>
+        </div>
+        <div class="w-full bg-slate-900 rounded-full h-2 overflow-hidden border border-slate-800">
+          <div id="batch-progress-bar" class="bg-gradient-to-r from-brand-500 to-accent-cyan h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+        </div>
+      </div>
+
+      <!-- Queue Table -->
+      <div class="overflow-x-auto rounded-xl border border-slate-800">
+        <table class="w-full text-left text-xs text-slate-300">
+          <thead class="bg-slate-900/90 text-slate-400 font-semibold border-b border-slate-800 uppercase tracking-wider text-[11px]">
+            <tr>
+              <th scope="col" class="px-4 py-3">File Info</th>
+              <th scope="col" class="px-4 py-3">Channels / Meta</th>
+              <th scope="col" class="px-4 py-3">Original Size</th>
+              <th scope="col" class="px-4 py-3">Output Size</th>
+              <th scope="col" class="px-4 py-3">Savings</th>
+              <th scope="col" class="px-4 py-3">Status</th>
+              <th scope="col" class="px-4 py-3 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="queue-tbody" class="divide-y divide-slate-800/60 bg-slate-950/40">
+            <!-- Empty state placeholder -->
+            <tr id="empty-row">
+              <td colspan="7" class="px-4 py-12 text-center text-slate-500">
+                <i class="fa-solid fa-music text-3xl mb-2 block opacity-40"></i>
+                No audio files in queue. Drag & drop files above to start.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- FOOTER SUMMARY & METRICS -->
+    <footer class="flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 border-t border-slate-800/80 pt-4 gap-2">
+      <div>
+        <span>Total Savings: </span>
+        <span id="metric-total-savings" class="font-mono text-emerald-400 font-bold">0 MB (0%)</span>
+      </div>
+      <div>
+        <span>AudioCompress Pro • 100% Client-Side Web Worker Pipeline</span>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- INLINE WEB WORKER SCRIPT FOR OFF-MAIN-THREAD AUDIO PROCESSING -->
+  <script id="audio-worker-code" type="text/plain">
+    // Web Worker scope for encoding audio
+    self.onmessage = async function(e) {
+      const { taskId, action, audioChannels, sampleRate, bitrate, format, downmix, trimStart, trimEnd, fadeSec, normalizeMode } = e.data;
+      
+      try {
+        if (action === 'PROCESS_AUDIO') {
+          let channels = audioChannels; // Array of Float32Array
+          let numChannels = channels.length;
+          let length = channels[0].length;
+          
+          // 1. Channel Downmixing
+          if (downmix === 'average' && numChannels > 1) {
+            const left = channels[0];
+            const right = channels[1];
+            const mono = new Float32Array(length);
+            for (let i = 0; i < length; i++) {
+              mono[i] = (left[i] + right[i]) * 0.5;
+            }
+            channels = [mono];
+            numChannels = 1;
+          } else if (downmix === 'left' && numChannels > 1) {
+            channels = [channels[0]];
+            numChannels = 1;
+          } else if (downmix === 'right' && numChannels > 1) {
+            channels = [channels[1]];
+            numChannels = 1;
+          }
+
+          // 2. Trimming & Fading
+          let startSample = Math.floor((trimStart || 0) * sampleRate);
+          let endSample = trimEnd ? Math.floor(trimEnd * sampleRate) : length;
+          startSample = Math.max(0, Math.min(startSample, length - 1));
+          endSample = Math.max(startSample + 1, Math.min(endSample, length));
+          
+          let trimmedLength = endSample - startSample;
+          let slicedChannels = channels.map(ch => ch.subarray(startSample, endSample));
+
+          // Fade In / Out
+          if (fadeSec && fadeSec > 0) {
+            let fadeSamples = Math.floor(fadeSec * sampleRate);
+            for (let c = 0; c < slicedChannels.length; c++) {
+              let ch = slicedChannels[c];
+              let clen = ch.length;
+              let actualFade = Math.min(fadeSamples, Math.floor(clen / 2));
+              // Fade In
+              for (let i = 0; i < actualFade; i++) {
+                ch[i] *= (i / actualFade);
+              }
+              // Fade Out
+              for (let i = 0; i < actualFade; i++) {
+                ch[clen - 1 - i] *= (i / actualFade);
+              }
+            }
+          }
+
+          // 3. Normalization (Peak / Standard)
+          if (normalizeMode === 'peak0' || normalizeMode === 'lufs16') {
+            let maxPeak = 0;
+            for (let c = 0; c < slicedChannels.length; c++) {
+              let ch = slicedChannels[c];
+              for (let i = 0; i < ch.length; i++) {
+                let abs = Math.abs(ch[i]);
+                if (abs > maxPeak) maxPeak = abs;
+              }
+            }
+            if (maxPeak > 0) {
+              let targetPeak = (normalizeMode === 'peak0') ? 0.95 : 0.75;
+              let gain = targetPeak / maxPeak;
+              for (let c = 0; c < slicedChannels.length; c++) {
+                let ch = slicedChannels[c];
+                for (let i = 0; i < ch.length; i++) {
+                  ch[i] *= gain;
+                }
+              }
+            }
+          }
+
+          // 4. Encode to Target Format
+          let outputBlob = null;
+
+          if (format === 'wav') {
+            outputBlob = encodeWAV(slicedChannels, sampleRate);
+          } else if (format === 'mp3') {
+            // Check if LameJS is available in worker context
+            if (typeof self.lamejs !== 'undefined') {
+              outputBlob = encodeMP3Lame(slicedChannels, sampleRate, bitrate || 128);
+            } else {
+              // Fallback to PCM WAV if MP3 encoder unavailable in worker
+              outputBlob = encodeWAV(slicedChannels, sampleRate);
+            }
+          } else {
+            // Default to WAV if format unhandled
+            outputBlob = encodeWAV(slicedChannels, sampleRate);
+          }
+
+          self.postMessage({ taskId, success: true, blob: outputBlob, finalNumChannels: numChannels });
+        }
+      } catch (err) {
+        self.postMessage({ taskId, success: false, error: err.message });
+      }
+    };
+
+    function encodeWAV(channels, sampleRate) {
+      const numChannels = channels.length;
+      const length = channels[0].length;
+      const buffer = new ArrayBuffer(44 + length * numChannels * 2);
+      const view = new DataView(buffer);
+
+      function writeString(offset, string) {
+        for (let i = 0; i < string.length; i++) {
+          view.setUint8(offset + i, string.charCodeAt(i));
+        }
+      }
+
+      /* RIFF identifier */
+      writeString(0, 'RIFF');
+      /* RIFF chunk length */
+      view.setUint32(4, 36 + length * numChannels * 2, true);
+      /* RIFF type */
+      writeString(8, 'WAVE');
+      /* format chunk identifier */
+      writeString(12, 'fmt ');
+      /* format chunk length */
+      view.setUint32(16, 16, true);
+      /* sample format (raw PCM) */
+      view.setUint16(20, 1, true);
+      /* channel count */
+      view.setUint16(22, numChannels, true);
+      /* sample rate */
+      view.setUint32(24, sampleRate, true);
+      /* byte rate (sample rate * block align) */
+      view.setUint32(28, sampleRate * numChannels * 2, true);
+      /* block align (channel count * bytes per sample) */
+      view.setUint16(32, numChannels * 2, true);
+      /* bits per sample */
+      view.setUint16(34, 16, true);
+      /* data chunk identifier */
+      writeString(36, 'data');
+      /* data chunk length */
+      view.setUint32(40, length * numChannels * 2, true);
+
+      // Interleave & float to int16 conversion
+      let offset = 44;
+      for (let i = 0; i < length; i++) {
+        for (let c = 0; c < numChannels; c++) {
+          let sample = Math.max(-1, Math.min(1, channels[c][i]));
+          sample = sample < 0 ? sample * 0x8000 : sample * 0x7FFF;
+          view.setInt16(offset, sample, true);
+          offset += 2;
+        }
+      }
+      return new Blob([buffer], { type: 'audio/wav' });
+    }
+
+    function encodeMP3Lame(channels, sampleRate, kbps) {
+      const numChannels = channels.length;
+      const length = channels[0].length;
+      const mp3encoder = new self.lamejs.Mp3Encoder(numChannels, sampleRate, kbps);
+      const mp3Data = [];
+
+      // Convert float32 to int16
+      const samplesL = new Int16Array(length);
+      for (let i = 0; i < length; i++) {
+        let s = Math.max(-1, Math.min(1, channels[0][i]));
+        samplesL[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+      }
+
+      let samplesR = null;
+      if (numChannels > 1) {
+        samplesR = new Int16Array(length);
+        for (let i = 0; i < length; i++) {
+          let s = Math.max(-1, Math.min(1, channels[1][i]));
+          samplesR[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+        }
+      }
+
+      const sampleBlockSize = 1152;
+      for (let i = 0; i < length; i += sampleBlockSize) {
+        const leftChunk = samplesL.subarray(i, i + sampleBlockSize);
+        let mp3buf;
+        if (numChannels === 1) {
+          mp3buf = mp3encoder.encodeBuffer(leftChunk);
+        } else {
+          const rightChunk = samplesR.subarray(i, i + sampleBlockSize);
+          mp3buf = mp3encoder.encodeBuffer(leftChunk, rightChunk);
+        }
+        if (mp3buf.length > 0) {
+          mp3Data.push(mp3buf);
+        }
+      }
+      const mp3buf = mp3encoder.flush();
+      if (mp3buf.length > 0) {
+        mp3Data.push(mp3buf);
+      }
+      return new Blob(mp3Data, { type: 'audio/mp3' });
+    }
+  </script>
+
+  <!-- MAIN APPLICATION LOGIC JS -->
+  <script>
+    $(document).ready(function() {
+      // ----------------------------------------------------
+      // STATE MANAGEMENT & DATA STRUCTURES
+      // ----------------------------------------------------
+      let audioCtx = null;
+      let batchQueue = []; // Array of QueueItem objects
+      let selectedPreset = 'small'; // 'small', 'medium', 'high'
+      let activeWorker = null;
+      let previewAudioBuffer = null;
+      let processedAudioBuffer = null;
+      let currentPreviewItem = null;
+      let abAudioSource = null;
+      let isPlayingPreview = false;
+
+      // Preset Target Configurations
+      const PRESETS = {
+        small: {
+          name: 'Small Size Reduction',
+          bitrate: 192,
+          sampleRate: 'auto',
+          desc: '~20-35% size reduction (High Quality Preserved)'
+        },
+        medium: {
+          name: 'Medium Size Reduction',
+          bitrate: 128,
+          sampleRate: 44100,
+          desc: '~40-60% size reduction (Balanced Quality)'
+        },
+        high: {
+          name: 'High Size Reduction',
+          bitrate: 80,
+          sampleRate: 22050,
+          desc: '~65-85% size reduction (Max Compression)'
+        }
+      };
+
+      // ----------------------------------------------------
+      // INITIALIZE AUDIO CONTEXT & WORKER
+      // ----------------------------------------------------
+      function getAudioContext() {
+        if (!audioCtx) {
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
+        return audioCtx;
+      }
+
+      // Create Web Worker from inline script tag
+      function createWorker() {
+        const workerBlob = new Blob([
+          'importScripts("https://cdn.jsdelivr.net/npm/lamejs@1.2.1/lame.min.js");\n',
+          $('#audio-worker-code').text()
+        ], { type: 'application/javascript' });
+        return new Worker(URL.createObjectURL(workerBlob));
+      }
+
+      activeWorker = createWorker();
+
+      // ----------------------------------------------------
+      // UI PRESET SELECTION HANDLERS
+      // ----------------------------------------------------
+      function selectPresetCard(presetKey) {
+        selectedPreset = presetKey;
+        $('.preset-card').removeClass('border-2 border-brand-500/80 bg-brand-900/20 shadow-glow-indigo').addClass('border border-slate-800 bg-slate-900/40');
+        
+        $(`#card-preset-${presetKey}`)
+          .removeClass('border-slate-800 bg-slate-900/40')
+          .addClass('border-2 border-brand-500/80 bg-brand-900/20 shadow-glow-indigo');
+      }
+
+      $('#card-preset-small').on('click', () => selectPresetCard('small'));
+      $('#card-preset-medium').on('click', () => selectPresetCard('medium'));
+      $('#card-preset-high').on('click', () => selectPresetCard('high'));
+
+      // Saved Presets Selector
+      $('#preset-selector').on('change', function() {
+        const val = $(this).val();
+        if (val === 'voice_podcast') {
+          selectPresetCard('high');
+          $('#cfg-downmix').val('average');
+          $('#cfg-samplerate').val('22050');
+          $('#cfg-normalize').val('lufs16');
+          $('#cfg-trim-silence').prop('checked', true);
+        } else if (val === 'music_balanced') {
+          selectPresetCard('medium');
+          $('#cfg-downmix').val('auto');
+          $('#cfg-samplerate').val('44100');
+          $('#cfg-normalize').val('none');
+          $('#cfg-trim-silence').prop('checked', false);
+        } else if (val === 'max_saver') {
+          selectPresetCard('high');
+          $('#cfg-downmix').val('average');
+          $('#cfg-metadata').val('strip');
+          $('#cfg-samplerate').val('16000');
+          $('#cfg-trim-silence').prop('checked', true);
+        }
+      });
+
+      $('#btn-save-preset').on('click', function() {
+        const customPreset = {
+          selectedPreset,
+          downmix: $('#cfg-downmix').val(),
+          format: $('#cfg-format').val(),
+          metadata: $('#cfg-metadata').val(),
+          samplerate: $('#cfg-samplerate').val(),
+          normalize: $('#cfg-normalize').val(),
+          trimSilence: $('#cfg-trim-silence').is(':checked')
+        };
+        localStorage.setItem('audiocompress_custom_preset', JSON.stringify(customPreset));
+        alert('Custom configuration preset saved to browser local storage!');
+      });
+
+      // ----------------------------------------------------
+      // DROPZONE & FILE INPUT HANDLERS
+      // ----------------------------------------------------
+      const $dropzone = $('#dropzone');
+      const $fileInput = $('#file-input');
+
+      $dropzone.on('click', function() {
+        $fileInput.click();
+      });
+
+      $dropzone.on('dragover dragenter', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        $dropzone.addClass('dropzone-active');
+      });
+
+      $dropzone.on('dragleave drop', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        $dropzone.removeClass('dropzone-active');
+      });
+
+      $dropzone.on('drop', function(e) {
+        const files = e.originalEvent.dataTransfer.files;
+        if (files && files.length > 0) {
+          handleIncomingFiles(files);
+        }
+      });
+
+      $fileInput.on('change', function() {
+        if (this.files && this.files.length > 0) {
+          handleIncomingFiles(this.files);
+          this.value = '';
+        }
+      });
+
+      $('#btn-reset-all').on('click', function() {
+        batchQueue.forEach(item => {
+          if (item.outputUrl) URL.revokeObjectURL(item.outputUrl);
+        });
+        batchQueue = [];
+        updateQueueTable();
+      });
+
+      // ----------------------------------------------------
+      // INCOMING FILE PARSING & QUEUE ENTRY
+      // ----------------------------------------------------
+      async function handleIncomingFiles(fileList) {
+        getAudioContext();
+        for (let i = 0; i < fileList.length; i++) {
+          const file = fileList[i];
+          if (!file.type.startsWith('audio/') && !file.name.match(/\.(mp3|wav|ogg|m4a|aac|flac)$/i)) {
+            continue;
+          }
+
+          const queueItem = {
+            id: 'item_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+            file: file,
+            name: file.name,
+            originalSize: file.size,
+            outputSize: 0,
+            savingsPct: 0,
+            status: 'pending', // 'pending', 'processing', 'done', 'error'
+            duration: 0,
+            numChannels: 2,
+            sampleRate: 44100,
+            tags: null,
+            outputBlob: null,
+            outputUrl: null,
+            audioBuffer: null
+          };
+
+          batchQueue.push(queueItem);
+          inspectAudioFile(queueItem);
+        }
+        updateQueueTable();
+      }
+
+      // Audio Metadata & Buffer Inspection
+      async function inspectAudioFile(item) {
+        try {
+          // Read metadata via jsmediatags if MP3
+          if (window.jsmediatags && item.name.endsWith('.mp3')) {
+            window.jsmediatags.read(item.file, {
+              onSuccess: function(tag) {
+                item.tags = tag.tags;
+                updateQueueTable();
+              },
+              onError: function(err) {}
+            });
+          }
+
+          const arrayBuffer = await item.file.arrayBuffer();
+          const ctx = getAudioContext();
+          const decoded = await ctx.decodeAudioData(arrayBuffer);
+          
+          item.duration = decoded.duration;
+          item.numChannels = decoded.numberOfChannels;
+          item.sampleRate = decoded.sampleRate;
+          item.audioBuffer = decoded;
+
+          updateQueueTable();
+        } catch (e) {
+          console.warn('Could not fully decode metadata for file: ' + item.name);
+        }
+      }
+
+      // ----------------------------------------------------
+      // QUEUE TABLE RENDERER
+      // ----------------------------------------------------
+      function updateQueueTable() {
+        const $tbody = $('#queue-tbody');
+        $tbody.empty();
+
+        $('#queue-badge-count').text(`${batchQueue.length} file${batchQueue.length === 1 ? '' : 's'}`);
+
+        if (batchQueue.length === 0) {
+          $tbody.append(`
+            <tr id="empty-row">
+              <td colspan="7" class="px-4 py-12 text-center text-slate-500">
+                <i class="fa-solid fa-music text-3xl mb-2 block opacity-40"></i>
+                No audio files in queue. Drag & drop files above to start.
+              </td>
+            </tr>
+          `);
+          $('#btn-process-all, #btn-download-zip, #btn-export-csv').prop('disabled', true);
+          updateMetrics();
+          return;
+        }
+
+        $('#btn-process-all, #btn-download-zip, #btn-export-csv').prop('disabled', false);
+
+        batchQueue.forEach((item, index) => {
+          const origSizeMb = (item.originalSize / (1024 * 1024)).toFixed(2);
+          const outSizeMb = item.outputSize ? (item.outputSize / (1024 * 1024)).toFixed(2) + ' MB' : '-';
+          
+          let statusBadge = '';
+          if (item.status === 'pending') {
+            statusBadge = `<span class="px-2 py-0.5 rounded text-[10px] bg-slate-800 text-slate-400 border border-slate-700">Pending</span>`;
+          } else if (item.status === 'processing') {
+            statusBadge = `<span class="px-2 py-0.5 rounded text-[10px] bg-brand-500/20 text-brand-300 border border-brand-500/40 animate-pulse"><i class="fa-solid fa-spinner fa-spin mr-1"></i> Processing</span>`;
+          } else if (item.status === 'done') {
+            statusBadge = `<span class="px-2 py-0.5 rounded text-[10px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/40"><i class="fa-solid fa-check mr-1"></i> Done</span>`;
+          } else if (item.status === 'error') {
+            statusBadge = `<span class="px-2 py-0.5 rounded text-[10px] bg-rose-500/20 text-rose-400 border border-rose-500/40"><i class="fa-solid fa-triangle-exclamation mr-1"></i> Error</span>`;
+          }
+
+          let savingsBadge = '-';
+          if (item.status === 'done' && item.savingsPct !== 0) {
+            const colorClass = item.savingsPct > 0 ? 'text-emerald-400 font-bold' : 'text-slate-400';
+            savingsBadge = `<span class="font-mono ${colorClass}">${item.savingsPct > 0 ? '-' : '+'}${Math.abs(item.savingsPct)}%</span>`;
+          }
+
+          const formatTime = (secs) => {
+            if (!secs) return '00:00';
+            const m = Math.floor(secs / 60);
+            const s = Math.floor(secs % 60);
+            return `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
+          };
+
+          const rowHtml = `
+            <tr class="hover:bg-slate-900/40 transition">
+              <td class="px-4 py-3">
+                <div class="flex items-center space-x-3">
+                  <div class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-brand-400 text-xs">
+                    <i class="fa-solid fa-file-audio"></i>
+                  </div>
+                  <div>
+                    <div class="font-semibold text-slate-200 truncate max-w-[200px]" title="${item.name}">${item.name}</div>
+                    <div class="text-[10px] text-slate-400 font-mono">${formatTime(item.duration)} • ${item.sampleRate || 44100} Hz</div>
+                  </div>
+                </div>
+              </td>
+              <td class="px-4 py-3 text-slate-400">
+                <div class="flex items-center gap-1.5">
+                  <span class="px-1.5 py-0.5 rounded bg-slate-800 text-[10px] text-slate-300 font-mono border border-slate-700">
+                    ${item.numChannels === 1 ? 'Mono' : 'Stereo'}
+                  </span>
+                  ${item.tags ? `<span class="text-[10px] text-accent-cyan" title="ID3 Tags Detected"><i class="fa-solid fa-tag"></i></span>` : ''}
+                </div>
+              </td>
+              <td class="px-4 py-3 font-mono text-slate-300">${origSizeMb} MB</td>
+              <td class="px-4 py-3 font-mono text-slate-300">${outSizeMb}</td>
+              <td class="px-4 py-3">${savingsBadge}</td>
+              <td class="px-4 py-3">${statusBadge}</td>
+              <td class="px-4 py-3 text-right">
+                <div class="flex items-center justify-end gap-1">
+                  <button onclick="previewItem('${item.id}')" title="Waveform & A/B Preview" class="p-1.5 rounded-lg bg-slate-800 hover:bg-brand-600 text-slate-300 hover:text-white transition">
+                    <i class="fa-solid fa-wave-square"></i>
+                  </button>
+                  ${item.outputUrl ? `
+                    <a href="${item.outputUrl}" download="${getExportFilename(item)}" title="Download File" class="p-1.5 rounded-lg bg-slate-800 hover:bg-emerald-600 text-emerald-400 hover:text-white transition">
+                      <i class="fa-solid fa-download"></i>
+                    </a>
+                  ` : ''}
+                  <button onclick="removeItem('${item.id}')" title="Remove File" class="p-1.5 rounded-lg bg-slate-800 hover:bg-rose-600 text-slate-400 hover:text-white transition">
+                    <i class="fa-solid fa-xmark"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          `;
+          $tbody.append(rowHtml);
+        });
+
+        updateMetrics();
+      }
+
+      // Metric calculations
+      function updateMetrics() {
+        let totalOrig = 0;
+        let totalOut = 0;
+        batchQueue.forEach(item => {
+          totalOrig += item.originalSize;
+          if (item.status === 'done' && item.outputSize) {
+            totalOut += item.outputSize;
+          } else {
+            totalOut += item.originalSize;
+          }
+        });
+        const savedBytes = Math.max(0, totalOrig - totalOut);
+        const savedMb = (savedBytes / (1024 * 1024)).toFixed(2);
+        const pct = totalOrig > 0 ? Math.round((savedBytes / totalOrig) * 100) : 0;
+        $('#metric-total-savings').text(`${savedMb} MB (${pct}% size reduction)`);
+      }
+
+      window.removeItem = function(id) {
+        const idx = batchQueue.findIndex(i => i.id === id);
+        if (idx !== -1) {
+          if (batchQueue[idx].outputUrl) URL.revokeObjectURL(batchQueue[idx].outputUrl);
+          batchQueue.splice(idx, 1);
+          updateQueueTable();
+        }
+      };
+
+      // ----------------------------------------------------
+      // BATCH PROCESSING ENGINE
+      // ----------------------------------------------------
+      $('#btn-process-all').on('click', async function() {
+        const pendingItems = batchQueue.filter(i => i.status !== 'done');
+        if (pendingItems.length === 0) return;
+
+        $('#batch-progress-container').removeClass('hidden');
+        $('#btn-process-all').prop('disabled', true);
+
+        let completedCount = 0;
+        const total = pendingItems.length;
+
+        for (let i = 0; i < total; i++) {
+          const item = pendingItems[i];
+          item.status = 'processing';
+          updateQueueTable();
+
+          $('#batch-progress-text').text(`Processing (${i + 1}/${total}): ${item.name}`);
+          $('#batch-progress-pct').text(`${Math.round(((i + 1) / total) * 100)}%`);
+          $('#batch-progress-bar').css('width', `${Math.round(((i + 1) / total) * 100)}%`);
+
+          try {
+            await processSingleItem(item);
+            item.status = 'done';
+          } catch (err) {
+            console.error('Failed to process item: ' + item.name, err);
+            item.status = 'error';
+          }
+          completedCount++;
+          updateQueueTable();
+        }
+
+        $('#batch-progress-text').text(`Batch Processing Complete! (${completedCount}/${total} files)`);
+        $('#btn-process-all').prop('disabled', false);
+      });
+
+      async function processSingleItem(item) {
+        const ctx = getAudioContext();
+        if (!item.audioBuffer) {
+          const ab = await item.file.arrayBuffer();
+          item.audioBuffer = await ctx.decodeAudioData(ab);
+        }
+
+        const buffer = item.audioBuffer;
+        const channelData = [];
+        for (let c = 0; c < buffer.numberOfChannels; c++) {
+          channelData.push(buffer.getChannelData(c));
+        }
+
+        const presetCfg = PRESETS[selectedPreset];
+        const targetFormat = $('#cfg-format').val();
+        const downmix = $('#cfg-downmix').val();
+        const normalize = $('#cfg-normalize').val();
+        const trimSilence = $('#cfg-trim-silence').is(':checked');
+
+        let trimStart = 0;
+        let trimEnd = buffer.duration;
+
+        if (trimSilence) {
+          // Simple silence detection threshold
+          const samples = channelData[0];
+          const len = samples.length;
+          let s = 0;
+          while (s < len && Math.abs(samples[s]) < 0.01) s++;
+          let e = len - 1;
+          while (e > s && Math.abs(samples[e]) < 0.01) e--;
+          trimStart = s / buffer.sampleRate;
+          trimEnd = e / buffer.sampleRate;
+        }
+
+        return new Promise((resolve, reject) => {
+          const taskId = item.id;
+          
+          const handleWorkerMessage = (e) => {
+            if (e.data.taskId === taskId) {
+              activeWorker.removeEventListener('message', handleWorkerMessage);
+              if (e.data.success) {
+                item.outputBlob = e.data.blob;
+                item.outputSize = e.data.blob.size;
+                item.outputUrl = URL.createObjectURL(e.data.blob);
+                item.savingsPct = Math.round(((item.originalSize - item.outputSize) / item.originalSize) * 100);
+                resolve(item);
+              } else {
+                reject(new Error(e.data.error));
+              }
+            }
+          };
+
+          activeWorker.addEventListener('message', handleWorkerMessage);
+
+          activeWorker.postMessage({
+            taskId: taskId,
+            action: 'PROCESS_AUDIO',
+            audioChannels: channelData,
+            sampleRate: buffer.sampleRate,
+            bitrate: presetCfg.bitrate,
+            format: targetFormat,
+            downmix: downmix,
+            trimStart: trimStart,
+            trimEnd: trimEnd,
+            fadeSec: 0.2,
+            normalizeMode: normalize
+          });
+        });
+      }
+
+      function getExportFilename(item) {
+        const pattern = $('#cfg-filename-pattern').val() || '{name}_compressed.{ext}';
+        const ext = $('#cfg-format').val() || 'mp3';
+        const baseName = item.name.substring(0, item.name.lastIndexOf('.')) || item.name;
+        return pattern.replace('{name}', baseName).replace('{ext}', ext);
+      }
+
+      // ----------------------------------------------------
+      // ZIP DOWNLOAD & CSV EXPORT
+      // ----------------------------------------------------
+      $('#btn-download-zip').on('click', async function() {
+        const doneItems = batchQueue.filter(i => i.status === 'done' && i.outputBlob);
+        if (doneItems.length === 0) return;
+
+        const zip = new JSZip();
+        doneItems.forEach(item => {
+          zip.file(getExportFilename(item), item.outputBlob);
+        });
+
+        const zipBlob = await zip.generateAsync({ type: 'blob' });
+        const url = URL.createObjectURL(zipBlob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `AudioCompress_Batch_${Date.now()}.zip`;
+        a.click();
+        URL.revokeObjectURL(url);
+      });
+
+      $('#btn-export-csv').on('click', function() {
+        if (batchQueue.length === 0) return;
+        let csv = 'Filename,Original Size (Bytes),Output Size (Bytes),Reduction Pct,Status\n';
+        batchQueue.forEach(i => {
+          csv += `"${i.name}",${i.originalSize},${i.outputSize || 0},${i.savingsPct}%,${i.status}\n`;
+        });
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Batch_Summary_${Date.now()}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+      });
+
+      // ----------------------------------------------------
+      // WAVEFORM CANVAS & A/B AUDIO PREVIEW
+      // ----------------------------------------------------
+      window.previewItem = async function(id) {
+        const item = batchQueue.find(i => i.id === id);
+        if (!item) return;
+
+        currentPreviewItem = item;
+        $('#waveform-section').removeClass('hidden');
+        $('#waveform-file-title').text(item.name);
+        $('#waveform-file-meta').text(`${item.sampleRate || 44100} Hz • ${item.numChannels === 1 ? 'Mono' : 'Stereo'} • ${(item.duration || 0).toFixed(1)}s`);
+
+        if (item.audioBuffer) {
+          previewAudioBuffer = item.audioBuffer;
+          drawWaveform(previewAudioBuffer);
+        }
+
+        if (item.outputBlob) {
+          $('#ab-btn-proc').prop('disabled', false);
+          const ctx = getAudioContext();
+          const ab = await item.outputBlob.arrayBuffer();
+          processedAudioBuffer = await ctx.decodeAudioData(ab);
+        } else {
+          $('#ab-btn-proc').prop('disabled', true);
+        }
+      };
+
+      function drawWaveform(buffer) {
+        const canvas = document.getElementById('waveform-canvas');
+        const ctx = canvas.getContext('2d');
+        const dpr = window.devicePixelRatio || 1;
+
+        canvas.width = canvas.offsetWidth * dpr;
+        canvas.height = canvas.offsetHeight * dpr;
+        ctx.scale(dpr, dpr);
+
+        const width = canvas.offsetWidth;
+        const height = canvas.offsetHeight;
+        const data = buffer.getChannelData(0);
+        const step = Math.ceil(data.length / width);
+        const amp = height / 2;
+
+        ctx.clearRect(0, 0, width, height);
+
+        // Draw center baseline
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+        ctx.beginPath();
+        ctx.moveTo(0, amp);
+        ctx.lineTo(width, amp);
+        ctx.stroke();
+
+        // Draw waveform peaks
+        ctx.fillStyle = '#6366f1';
+        for (let i = 0; i < width; i++) {
+          let min = 1.0;
+          let max = -1.0;
+          for (let j = 0; j < step; j++) {
+            const datum = data[(i * step) + j];
+            if (datum < min) min = datum;
+            if (datum > max) max = datum;
+          }
+          ctx.fillRect(i, (1 + min) * amp, 1.5, Math.max(1, (max - min) * amp));
+        }
+      }
+
+      // Playback controls
+      $('#btn-play-preview').on('click', function() {
+        const ctx = getAudioContext();
+        if (isPlayingPreview) {
+          if (abAudioSource) abAudioSource.stop();
+          isPlayingPreview = false;
+          $('#btn-play-preview').html('<i class="fa-solid fa-play"></i>');
+        } else {
+          if (!previewAudioBuffer) return;
+          abAudioSource = ctx.createBufferSource();
+          abAudioSource.buffer = previewAudioBuffer;
+          abAudioSource.connect(ctx.destination);
+          abAudioSource.start(0);
+          isPlayingPreview = true;
+          $('#btn-play-preview').html('<i class="fa-solid fa-pause"></i>');
+          abAudioSource.onended = () => {
+            isPlayingPreview = false;
+            $('#btn-play-preview').html('<i class="fa-solid fa-play"></i>');
+          };
+        }
+      });
+
+      $('#ab-btn-orig').on('click', function() {
+        $(this).addClass('bg-brand-600 text-white').removeClass('text-slate-400');
+        $('#ab-btn-proc').removeClass('bg-brand-600 text-white').addClass('text-slate-400');
+      });
+
+      $('#ab-btn-proc').on('click', function() {
+        $(this).addClass('bg-brand-600 text-white').removeClass('text-slate-400');
+        $('#ab-btn-orig').removeClass('bg-brand-600 text-white').addClass('text-slate-400');
+      });
+
+    });
+  </script>
+</body>
+</html>
